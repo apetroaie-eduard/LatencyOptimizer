@@ -75,9 +75,12 @@ cd C:\path\to\LatencyOptimizer
 ### Step 3: Run the script (launches the GUI)
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\LatencyOptimizer.ps1
+powershell -ExecutionPolicy Bypass -File .\LatencyOptimizer.ps1 -Apply
 ```
 
+**Apply safe defaults (auto-excludes risky/controversial tweaks):**
+
+`-Apply` now skips ISP/stack-sensitive network tweaks (auto-tuning/ECN/timestamps), HAGS toggles, large system cache, memory compression disable, NIC MSI-off/affinity pinning. You can still apply them individually from the GUI.
 What you get:
 
 - A Windows-style UI (no console spam) with categories on the left and per-tweak checkboxes on the right

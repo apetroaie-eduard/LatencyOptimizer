@@ -159,7 +159,8 @@ function New-Tweak {
         [string]$Name,
         [string]$Risk,
         [string]$Description,
-        [scriptblock]$Apply
+        [scriptblock]$Apply,
+        [bool]$IncludeInAll = $true
     )
 
     [PSCustomObject]@{
@@ -169,6 +170,7 @@ function New-Tweak {
         Risk        = $Risk
         Description = $Description
         Apply       = $Apply
+        ApplyAll    = $IncludeInAll
     }
 }
 
@@ -262,15 +264,15 @@ function Get-TweakCatalog {
         New-Tweak 17 "Network" "Disable TCP Auto-Tuning" "Medium" "Fixes TCP receive window size; can help unstable ISPs." {
             netsh int tcp set global autotuninglevel=disabled 2>$null | Out-Null
             Write-Status "Disabled TCP auto-tuning"
-        }
+        } $false
         New-Tweak 18 "Network" "Disable ECN Capability" "Medium" "Turns off Explicit Congestion Notification (some routers mishandle it)." {
             netsh int tcp set global ecncapability=disabled 2>$null | Out-Null
             Write-Status "Disabled ECN capability"
-        }
+        } $false
         New-Tweak 19 "Network" "Disable TCP Timestamps" "Medium" "Removes TCP timestamps; keeps window scaling enabled (Tcp1323Opts=1)." {
             Set-RegDword "HKLM" "SYSTEM\CurrentControlSet\Services\Tcpip\Parameters" "Tcp1323Opts" 1 | Out-Null
             Write-Status "Disabled TCP timestamps (window scaling only)"
-        }
+        } $false
 
         New-Tweak 20 "GPU" "NVIDIA: Max Performance + 1 Pre-rendered Frame" "Safe (NVIDIA)" "Forces max performance clocks and limits render queue depth." {
             Set-RegDword "HKLM" $nvClassKey "PowerMizerEnable" 0 | Out-Null
@@ -283,11 +285,11 @@ function Get-TweakCatalog {
         New-Tweak 21 "GPU" "Disable HAGS" "Medium" "Turns off Hardware-Accelerated GPU Scheduling (helps on some older GPUs)." {
             Set-RegDword "HKLM" "SYSTEM\CurrentControlSet\Control\GraphicsDrivers" "HwSchMode" 1 | Out-Null
             Write-Status "Disabled Hardware-Accelerated GPU Scheduling"
-        }
+        } $false
         New-Tweak 22 "GPU" "Enable HAGS" "Medium" "Enables Hardware-Accelerated GPU Scheduling (helps on newer GPUs)." {
             Set-RegDword "HKLM" "SYSTEM\CurrentControlSet\Control\GraphicsDrivers" "HwSchMode" 2 | Out-Null
             Write-Status "Enabled Hardware-Accelerated GPU Scheduling"
-        }
+        } $false
         New-Tweak 23 "GPU" "Disable Fullscreen Optimizations" "Safe" "Forces true exclusive fullscreen instead of borderless compositing." {
             Set-RegDword "HKCU" "System\GameConfigStore" "GameDVR_FSEBehaviorMode" 2 | Out-Null
             Set-RegDword "HKCU" "System\GameConfigStore" "GameDVR_HonorUserFSEBehaviorMode" 1 | Out-Null
@@ -303,11 +305,11 @@ function Get-TweakCatalog {
         New-Tweak 25 "Memory" "Enable Large System Cache" "Medium" "Allocates more RAM to filesystem cache (better throughput)." {
             Set-RegDword "HKLM" $memKey "LargeSystemCache" 1 | Out-Null
             Write-Status "Enabled large system cache"
-        }
+        } $false
         New-Tweak 26 "Memory" "Disable Memory Compression" "Medium" "Stops RAM page compression (trades CPU cycles for latency)." {
             Disable-MMAgent -MemoryCompression -ErrorAction SilentlyContinue
             Write-Status "Disabled memory compression"
-        }
+        } $false
 
         New-Tweak 27 "Timers" "Enable High-Resolution Timer (HPET)" "Safe" "Enables platform clock and enhanced TSC sync for precise timing." {
             bcdedit /set useplatformclock true 2>$null | Out-Null
@@ -323,11 +325,11 @@ function Get-TweakCatalog {
             Set-RegDword "HKLM" $netClassKey "*InterruptAffinityPolicy" 5 | Out-Null
             Set-RegDword "HKLM" $netClassKey "*InterruptAffinity" 1 | Out-Null
             Write-Status "Set network interrupt affinity to CPU 0"
-        }
+        } $false
         New-Tweak 30 "Interrupts" "Disable MSI for Network Adapter" "High" "Forces NIC to legacy INTx interrupts (use only if MSI causes issues)." {
             Set-RegDword "HKLM" $netClassKey "MSISupported" 0 | Out-Null
             Write-Status "Disabled network MSI (Message-Signaled Interrupts)"
-        }
+        } $false
 
         New-Tweak 31 "Input" "Disable Mouse Acceleration" "Safe" "Sets MouseSpeed/Threshold to 0 for 1:1 input." {
             Set-RegString "HKCU" "Control Panel\Mouse" "MouseSpeed" "0" | Out-Null
@@ -1176,7 +1178,8 @@ function Apply-AllTweaks {
     Write-Host "    APPLYING ALL LATENCY OPTIMIZATION TWEAKS"  -ForegroundColor White
     Write-Host "  =============================================" -ForegroundColor White
 
-    Apply-TweakList (Get-TweakCatalog)
+    $safeTweaks = Get-TweakCatalog | Where-Object { $_.ApplyAll }
+    Apply-TweakList $safeTweaks
 
     Write-Host ""
     Write-Host "  =============================================" -ForegroundColor Green
