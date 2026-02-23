@@ -25,6 +25,9 @@ Makefile
 .idea/
 *.user
 
+# CodeQL tool artifacts
+_codeql_detected_source_root
+
 # Third-party source (not vendored; fetched by user per README)
 # third_party/imgui/ is intentionally NOT ignored so the build works
 # once the user clones ImGui there.
