@@ -125,7 +125,13 @@ function Set-ServiceDisabled {
         Set-Service -Name $ServiceName -StartupType Disabled -ErrorAction Stop
         return $true
     } catch {
-        return $false
+        try {
+            & sc.exe config "$ServiceName" start= disabled 2>$null | Out-Null
+            & sc.exe stop "$ServiceName" 2>$null | Out-Null
+            return $true
+        } catch {
+            return $false
+        }
     }
 }
 
@@ -147,6 +153,44 @@ function Set-ServiceManual {
         return $true
     } catch {
         return $false
+    }
+}
+
+function Is-MultiCcdRyzen {
+    try {
+        $cpu = Get-CimInstance -ClassName Win32_Processor | Select-Object -First 1
+        if (-not $cpu) { return $false }
+        if ($cpu.Manufacturer -notlike "*AMD*") { return $false }
+        $numa = Get-CimInstance -ClassName Win32_NumaNode -ErrorAction SilentlyContinue
+        if ($numa.Count -gt 1) { return $true }
+    } catch {
+        return $false
+    }
+    return $false
+}
+
+function Get-PrimaryGpuInstancePath {
+    try {
+        $gpu = Get-PnpDevice -Class Display -Status OK | Sort-Object -Property Present -Descending | Select-Object -First 1
+        return $gpu.InstanceId
+    } catch {
+        return $null
+    }
+}
+
+function Add-DevicePriorityEntry {
+    param([string]$InstanceId)
+    if (-not $InstanceId) { return }
+    $path = "HKLM:\SYSTEM\CurrentControlSet\Control\PriorityControl"
+    try {
+        $current = (Get-ItemProperty -Path $path -Name DevicePriority -ErrorAction SilentlyContinue).DevicePriority
+        if ($current -and ($current -contains $InstanceId)) { return }
+        $newList = @()
+        if ($current) { $newList += $current }
+        $newList += $InstanceId
+        Set-ItemProperty -Path $path -Name DevicePriority -Value $newList -Type MultiString -Force -ErrorAction Stop
+    } catch {
+        # best effort; ignore failures
     }
 }
 
@@ -257,7 +301,7 @@ function Get-TweakCatalog {
             Write-Status "Disabled Nagle's algorithm (TCPNoDelay + TcpAckFrequency)"
         }
         New-Tweak 16 "Network" "Disable Network Throttling" "Safe" "Removes MMCSS 10-packet throttle to uncap network throughput." {
-            Set-RegDword "HKLM" "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "NetworkThrottlingIndex" 0xFFFFFFFF | Out-Null
+            Set-RegDword "HKLM" "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "NetworkThrottlingIndex" ([uint32]0xFFFFFFFF) | Out-Null
             Set-RegDword "HKLM" "SOFTWARE\Microsoft\Windows NT\CurrentVersion\Multimedia\SystemProfile" "SystemResponsiveness" 0 | Out-Null
             Write-Status "Disabled network throttling (MMCSS)"
         }
@@ -381,8 +425,12 @@ function Get-TweakCatalog {
             Write-Status "NVIDIA: Disabled HDCP"
         }
         New-Tweak 40 "DPC Latency" "NVIDIA: Per-CPU DPC Distribution" "Safe" "Spreads NVIDIA DPC work across all cores." {
-            Set-RegDword "HKLM" $nvClassKey "RmGpsPsEnablePerCpuCoreDpc" 1 | Out-Null
-            Write-Status "NVIDIA: Enabled per-CPU DPC distribution"
+            if (Is-MultiCcdRyzen) {
+                Write-Status "Skipped per-CPU DPC distribution on multi-CCD Ryzen (avoid IF latency)" "Yellow"
+            } else {
+                Set-RegDword "HKLM" $nvClassKey "RmGpsPsEnablePerCpuCoreDpc" 1 | Out-Null
+                Write-Status "NVIDIA: Enabled per-CPU DPC distribution"
+            }
         }
         New-Tweak 41 "DPC Latency" "NVIDIA: Disable GPU PCIe ASPM" "Safe" "Keeps PCIe link at full L0 to avoid retrain DPC spikes." {
             Set-RegDword "HKLM" $nvClassKey "RmDisableGpuASPMFlags" 3 | Out-Null
@@ -390,15 +438,17 @@ function Get-TweakCatalog {
         }
         New-Tweak 42 "DPC Latency" "Enable GPU MSI" "Medium" "Gives GPU dedicated MSI interrupt vector." {
             Set-RegDword "HKLM" $nvClassKey "MSISupported" 1 | Out-Null
-            Write-Status "GPU: Enabled MSI mode"
+            $inst = Get-PrimaryGpuInstancePath
+            Add-DevicePriorityEntry $inst
+            Write-Status "GPU: Enabled MSI mode and set device priority"
         }
         New-Tweak 43 "DPC Latency" "Disable NVIDIA Telemetry Container" "Safe" "Stops NvTelemetryContainer service that triggers periodic callbacks." {
             if (Set-ServiceDisabled "NvTelemetryContainer") { Write-Status "NVIDIA: Disabled NvTelemetryContainer" } else { Write-Status "NVIDIA: NvTelemetryContainer not found" "Yellow" }
         }
-        New-Tweak 44 "DPC Latency" "Pin GPU Interrupts to CPU 1" "Medium" "Isolates GPU DPCs from NIC DPCs (NIC on CPU0, GPU on CPU1)." {
+        New-Tweak 44 "DPC Latency" "Pin GPU Interrupts to CPU 2 (physical core)" "Medium" "Uses a physical-core offset to avoid SMT pair contention (NIC on CPU0, GPU on CPU2)." {
             Set-RegDword "HKLM" $nvClassKey "*InterruptAffinityPolicy" 5 | Out-Null
-            Set-RegDword "HKLM" $nvClassKey "*InterruptAffinity" 2 | Out-Null
-            Write-Status "GPU: Pinned interrupts to CPU 1"
+            Set-RegDword "HKLM" $nvClassKey "*InterruptAffinity" 4 | Out-Null
+            Write-Status "GPU: Pinned interrupts to CPU 2 (physical core)"
         }
         New-Tweak 45 "DPC Latency" "Disable GPU Deep Idle (P8)" "Medium" "Prevents deep idle P-state transitions that cause wake-up DPC storms." {
             Set-RegDword "HKLM" $nvClassKey "EnableRID73519" 0 | Out-Null
