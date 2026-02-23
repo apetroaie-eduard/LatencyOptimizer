@@ -1,0 +1,8 @@
+// LatencyOptimizer application resources
+#include <windows.h>
+
+// Application icon (place LatencyOptimizer.ico in resources/ folder)
+1 ICON "LatencyOptimizer.ico"
+
+// Embed the admin manifest so Windows auto-elevates
+1 RT_MANIFEST "../admin.manifest"

@@ -1,0 +1,30 @@
+# Build artifacts
+build/
+out/
+*.exe
+*.dll
+*.obj
+*.pdb
+*.ilk
+*.exp
+*.lib
+
+# CMake generated
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln
+*.suo
+.vs/
+
+# IDE
+.idea/
+*.user
+
+# Third-party source (not vendored; fetched by user per README)
+# third_party/imgui/ is intentionally NOT ignored so the build works
+# once the user clones ImGui there.
