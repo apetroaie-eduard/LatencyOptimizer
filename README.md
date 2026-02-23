@@ -72,25 +72,24 @@ script is the easiest way to get started.
 cd C:\path\to\LatencyOptimizer
 ```
 
-### Step 3: Run the script
-
-**Interactive menu (recommended for first use):**
+### Step 3: Run the script (launches the GUI)
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File LatencyOptimizer.ps1
+powershell -ExecutionPolicy Bypass -File .\LatencyOptimizer.ps1
 ```
 
-**Apply all tweaks immediately (no menu):**
+What you get:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File LatencyOptimizer.ps1 -Apply
-```
+- A Windows-style UI (no console spam) with categories on the left and per-tweak checkboxes on the right
+- Hover over any tweak to see a one-line description of what it does
+- Pick individual tweaks across categories, click **Apply Selected**, and the script auto-backups before changing anything
+- Buttons for **Restore Backup**, **Export Log**, **Select All/Clear**, and **Close**
 
-**Restore original settings from backup:**
+CLI fallbacks (optional):
 
-```powershell
-powershell -ExecutionPolicy Bypass -File LatencyOptimizer.ps1 -Restore
-```
+- Apply everything without opening the UI: `powershell -ExecutionPolicy Bypass -File .\LatencyOptimizer.ps1 -Apply`
+- Restore from backup without the UI: `powershell -ExecutionPolicy Bypass -File .\LatencyOptimizer.ps1 -Restore`
+- Old text menu: `powershell -ExecutionPolicy Bypass -File .\LatencyOptimizer.ps1 -Cli`
 
 ### Step 4: Reboot
 
@@ -136,69 +135,30 @@ instructions. Once built:
 
 ## Step-by-Step Usage Guide
 
-### Using the PowerShell Interactive Menu
+### Using the PowerShell GUI
 
-When you run the script without flags, you see this menu:
+Launching `LatencyOptimizer.ps1` now opens a mouse-friendly UI:
 
-```
-  =============================================
-       LATENCY OPTIMIZER  -  PowerShell Edition
-  =============================================
+- **Left sidebar:** 12 tweak categories
+- **Right panel:** individual tweaks with checkboxes and risk labels
+- **Hover:** tooltip shows a one-line description of the highlighted tweak
+- **Bottom:** description box + live log
 
-  [1] Apply ALL tweaks (recommended)
-  [2] Apply by category...
-  [3] Restore from backup
-  [4] Export log
-  [0] Exit
-```
+Workflow:
 
-#### Option 1: Apply ALL Tweaks
+1. Click a category to filter
+2. Tick the tweaks you want (across categories is fine)
+3. Click **Apply Selected** — an automatic backup is created first
+4. Reboot for full effect when prompted
 
-1. Type `1` and press Enter
-2. The script automatically creates a backup of your current settings
-3. All 52 tweaks are applied in sequence across all 12 categories
-4. Each tweak prints a `[+]` success or `[-]` failure message
-5. A log file is saved to `%USERPROFILE%\LatencyOptimizer_Log.txt`
-6. Reboot when done
+Other controls:
 
-#### Option 2: Apply by Category
+- **Restore Backup** — reverts everything using `LatencyOptimizer_Backup.json`
+- **Export Log** — writes `%USERPROFILE%\LatencyOptimizer_Log.txt`
+- **Select All / Clear** — bulk-check or uncheck the current category
+- **Close** — exits the UI
 
-1. Type `2` and press Enter
-2. A category sub-menu appears:
-
-```
-  [1]  Services        (SysMain, WSearch, Spooler, Diag)
-  [2]  Registry / UI   (Visual FX, Tips, Game Bar, Cortana, Fast Startup)
-  [3]  Power           (Ultimate Perf, USB Suspend, Core Parking, Throttling)
-  [4]  Network         (Nagle, Throttling, Auto-Tuning, ECN, Timestamps)
-  [5]  GPU             (NVIDIA, HAGS, Fullscreen Opt)
-  [6]  Memory          (Paging Executive, Large Cache, Compression)
-  [7]  Timers          (HPET, Dynamic Tick)
-  [8]  Interrupts      (NIC Affinity, MSI)
-  [9]  Input           (Mouse Accel, Polling, Sticky Keys, Game Mode)
-  [10] Scheduler       (Win32Priority, MMCSS Games, Pro Audio)
-  [11] DPC Latency     (NVIDIA HDCP, Per-CPU DPC, ASPM, GPU MSI, PState)
-  [12] Misc / Privacy  (Telemetry, Notifications, Background Apps, etc.)
-  [0]  Back
-```
-
-3. Type the number of the category you want
-4. A backup is created, then only that category's tweaks are applied
-5. You can apply multiple categories one at a time
-
-#### Option 3: Restore from Backup
-
-1. Type `3` and press Enter
-2. The script reads `%USERPROFILE%\LatencyOptimizer_Backup.json`
-3. All registry values are restored to their original state
-4. All services are set back to their original startup type
-5. BCD, netsh, and powercfg settings are reverted
-6. Reboot to complete the restore
-
-#### Option 4: Export Log
-
-1. Type `4` and press Enter
-2. All actions from the current session are saved to `%USERPROFILE%\LatencyOptimizer_Log.txt`
+Need the old text-only flow? Run with `-Cli` to get the legacy menu.
 
 ### Using the GUI Application
 
