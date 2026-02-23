@@ -63,3 +63,24 @@ public:
     bool Revert()   override;
     bool IsApplied() const override;
 };
+
+// Tweak: Disable Fullscreen Optimizations
+class DisableFullscreenOptTweak : public TweakBase {
+public:
+    const char* Name()        const override { return "Disable Fullscreen Optimizations"; }
+    const char* Description() const override { return "Prevents Windows from intercepting fullscreen apps with DWM composition."; }
+    const char* Detail()      const override {
+        return "Windows 10/11 applies 'fullscreen optimizations' that keep DWM\n"
+               "compositing active even in exclusive fullscreen mode. This adds\n"
+               "a frame of latency on some systems. Disabling it system-wide via\n"
+               "the GameConfigStore registry allows true exclusive fullscreen.";
+    }
+    const char* Category()    const override { return "GPU"; }
+    TweakRisk   Risk()        const override { return TweakRisk::Safe; }
+    TweakCompat Compat()      const override { return TweakCompat::All; }
+    bool RequiresBackup()     const override { return true; }
+
+    bool Apply()    override;
+    bool Revert()   override;
+    bool IsApplied() const override;
+};

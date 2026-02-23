@@ -64,3 +64,45 @@ public:
     bool Revert()   override;
     bool IsApplied() const override;
 };
+
+// Tweak: Disable Sticky & Filter Keys
+class DisableStickyFilterKeysTweak : public TweakBase {
+public:
+    const char* Name()        const override { return "Disable Sticky & Filter Keys"; }
+    const char* Description() const override { return "Disables accessibility keyboard shortcuts that interrupt gaming."; }
+    const char* Detail()      const override {
+        return "Sticky Keys and Filter Keys are accessibility features triggered\n"
+               "by pressing Shift 5 times or holding a key. During gaming these\n"
+               "can pop up intrusive dialogs and interrupt focus. Disabling their\n"
+               "hotkeys prevents accidental activation during gameplay.";
+    }
+    const char* Category()    const override { return "Input"; }
+    TweakRisk   Risk()        const override { return TweakRisk::Safe; }
+    TweakCompat Compat()      const override { return TweakCompat::All; }
+    bool RequiresBackup()     const override { return true; }
+
+    bool Apply()    override;
+    bool Revert()   override;
+    bool IsApplied() const override;
+};
+
+// Tweak: Enable Game Mode
+class EnableGameModeTweak : public TweakBase {
+public:
+    const char* Name()        const override { return "Enable Game Mode"; }
+    const char* Description() const override { return "Enables Windows Game Mode to prioritize game processes."; }
+    const char* Detail()      const override {
+        return "Game Mode tells Windows to prioritize CPU and GPU resources for\n"
+               "the foreground game. It suppresses Windows Update installation\n"
+               "and reduces background activity during gameplay. On Windows 11\n"
+               "it also optimizes thread scheduling for the game process.";
+    }
+    const char* Category()    const override { return "Input"; }
+    TweakRisk   Risk()        const override { return TweakRisk::Safe; }
+    TweakCompat Compat()      const override { return TweakCompat::All; }
+    bool RequiresBackup()     const override { return true; }
+
+    bool Apply()    override;
+    bool Revert()   override;
+    bool IsApplied() const override;
+};

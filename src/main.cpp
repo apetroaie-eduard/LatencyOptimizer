@@ -102,29 +102,38 @@ static LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 // ─── Register all tweaks ──────────────────────────────────────────────────────
 static void RegisterTweaks(Gui& gui)
 {
-    // Services (3)
+    // Services (5)
     gui.RegisterTweak(std::make_shared<DisableSysMainTweak>());
     gui.RegisterTweak(std::make_shared<DisableWSearchTweak>());
     gui.RegisterTweak(std::make_shared<DisableWUDOTweak>());
+    gui.RegisterTweak(std::make_shared<DisablePrintSpoolerTweak>());
+    gui.RegisterTweak(std::make_shared<DisableDiagServicesTweak>());
 
-    // Registry (3)
+    // Registry (5)
     gui.RegisterTweak(std::make_shared<DisableVisualEffectsTweak>());
     gui.RegisterTweak(std::make_shared<DisableWindowsTipsTweak>());
     gui.RegisterTweak(std::make_shared<DisableGameBarTweak>());
+    gui.RegisterTweak(std::make_shared<DisableCortanaTweak>());
+    gui.RegisterTweak(std::make_shared<DisableFastStartupTweak>());
 
-    // Power (2)
+    // Power (4)
     gui.RegisterTweak(std::make_shared<UltimatePerformancePlanTweak>());
     gui.RegisterTweak(std::make_shared<DisableUSBSuspendTweak>());
+    gui.RegisterTweak(std::make_shared<DisableCoreParkingTweak>());
+    gui.RegisterTweak(std::make_shared<DisablePowerThrottlingTweak>());
 
-    // Network (3)
+    // Network (5)
     gui.RegisterTweak(std::make_shared<DisableNagleTweak>());
     gui.RegisterTweak(std::make_shared<DisableNetworkThrottlingTweak>());
     gui.RegisterTweak(std::make_shared<DisableTCPAutoTuningTweak>());
+    gui.RegisterTweak(std::make_shared<DisableECNTweak>());
+    gui.RegisterTweak(std::make_shared<DisableTCPTimestampsTweak>());
 
-    // GPU (3)
+    // GPU (4)
     gui.RegisterTweak(std::make_shared<NvidiaOptimizeTweak>());
     gui.RegisterTweak(std::make_shared<DisableHAGSTweak>());
     gui.RegisterTweak(std::make_shared<EnableHAGSTweak>());
+    gui.RegisterTweak(std::make_shared<DisableFullscreenOptTweak>());
 
     // Memory (3)
     gui.RegisterTweak(std::make_shared<DisablePagingExecutiveTweak>());
@@ -139,21 +148,26 @@ static void RegisterTweaks(Gui& gui)
     gui.RegisterTweak(std::make_shared<NetworkInterruptAffinityTweak>());
     gui.RegisterTweak(std::make_shared<DisableNetworkMSITweak>());
 
-    // Input (3)
+    // Input (5)
     gui.RegisterTweak(std::make_shared<DisableMouseAccelerationTweak>());
     gui.RegisterTweak(std::make_shared<MousePollingRateTweak>());
     gui.RegisterTweak(std::make_shared<DisablePointerPrecisionTweak>());
+    gui.RegisterTweak(std::make_shared<DisableStickyFilterKeysTweak>());
+    gui.RegisterTweak(std::make_shared<EnableGameModeTweak>());
 
     // Scheduler (3)
     gui.RegisterTweak(std::make_shared<Win32PrioritySeparationTweak>());
     gui.RegisterTweak(std::make_shared<GameCPUPriorityTweak>());
     gui.RegisterTweak(std::make_shared<SFIOPriorityTweak>());
 
-    // Misc (4)
+    // Misc (7)
     gui.RegisterTweak(std::make_shared<DisableDeliveryOptimizationTweak>());
     gui.RegisterTweak(std::make_shared<DisableNotificationsTweak>());
     gui.RegisterTweak(std::make_shared<DisableBackgroundAppsTweak>());
     gui.RegisterTweak(std::make_shared<DisableTelemetryTweak>());
+    gui.RegisterTweak(std::make_shared<DisableActivityHistoryTweak>());
+    gui.RegisterTweak(std::make_shared<DisableStorageSenseTweak>());
+    gui.RegisterTweak(std::make_shared<DisableErrorReportingTweak>());
 }
 
 // ─── WinMain ─────────────────────────────────────────────────────────────────

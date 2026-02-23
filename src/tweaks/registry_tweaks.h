@@ -62,3 +62,45 @@ public:
     bool Revert()   override;
     bool IsApplied() const override;
 };
+
+// Tweak: Disable Cortana
+class DisableCortanaTweak : public TweakBase {
+public:
+    const char* Name()        const override { return "Disable Cortana"; }
+    const char* Description() const override { return "Disables Cortana to reduce background CPU and network usage."; }
+    const char* Detail()      const override {
+        return "Cortana runs background processes for voice recognition and\n"
+               "Bing integration. Disabling it via policy frees CPU cycles and\n"
+               "stops background network requests. Search still works via the\n"
+               "standard Windows Search interface.";
+    }
+    const char* Category()    const override { return "Registry"; }
+    TweakRisk   Risk()        const override { return TweakRisk::Safe; }
+    TweakCompat Compat()      const override { return TweakCompat::All; }
+    bool RequiresBackup()     const override { return true; }
+
+    bool Apply()    override;
+    bool Revert()   override;
+    bool IsApplied() const override;
+};
+
+// Tweak: Disable Fast Startup (Hibernation)
+class DisableFastStartupTweak : public TweakBase {
+public:
+    const char* Name()        const override { return "Disable Fast Startup"; }
+    const char* Description() const override { return "Disables hybrid shutdown for clean boot and reduced driver issues."; }
+    const char* Detail()      const override {
+        return "Fast Startup saves kernel state to the hibernation file on shutdown\n"
+               "for faster boot. This can cause driver issues, stale state, and\n"
+               "prevents clean re-initialization of hardware. Disabling it ensures\n"
+               "a full cold boot with fresh driver initialization every time.";
+    }
+    const char* Category()    const override { return "Registry"; }
+    TweakRisk   Risk()        const override { return TweakRisk::Safe; }
+    TweakCompat Compat()      const override { return TweakCompat::All; }
+    bool RequiresBackup()     const override { return true; }
+
+    bool Apply()    override;
+    bool Revert()   override;
+    bool IsApplied() const override;
+};

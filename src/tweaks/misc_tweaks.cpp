@@ -112,3 +112,95 @@ bool DisableTelemetryTweak::IsApplied() const
     auto val = registry_utils::ReadDword(HKEY_LOCAL_MACHINE, kTelemetryKey, L"AllowTelemetry");
     return val.has_value() && *val == 0;
 }
+
+// ─── DisableActivityHistoryTweak ─────────────────────────────────────────────
+static const wchar_t* kActivityHistoryKey =
+    L"SOFTWARE\\Policies\\Microsoft\\Windows\\System";
+
+bool DisableActivityHistoryTweak::Apply()
+{
+    bool ok = registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kActivityHistoryKey,
+                                          L"PublishUserActivities", 0);
+    ok &= registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kActivityHistoryKey,
+                                      L"UploadUserActivities", 0);
+    ok &= registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kActivityHistoryKey,
+                                      L"EnableActivityFeed", 0);
+    m_lastStatus = ok ? TweakStatus::Applied : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableActivityHistoryTweak::Revert()
+{
+    bool ok = registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kActivityHistoryKey,
+                                          L"PublishUserActivities", 1);
+    ok &= registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kActivityHistoryKey,
+                                      L"UploadUserActivities", 1);
+    ok &= registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kActivityHistoryKey,
+                                      L"EnableActivityFeed", 1);
+    m_lastStatus = ok ? TweakStatus::Reverted : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableActivityHistoryTweak::IsApplied() const
+{
+    auto val = registry_utils::ReadDword(HKEY_LOCAL_MACHINE, kActivityHistoryKey,
+                                          L"PublishUserActivities");
+    return val.has_value() && *val == 0;
+}
+
+// ─── DisableStorageSenseTweak ────────────────────────────────────────────────
+static const wchar_t* kStorageSenseKey =
+    L"SOFTWARE\\Policies\\Microsoft\\Windows\\StorageSense";
+
+bool DisableStorageSenseTweak::Apply()
+{
+    bool ok = registry_utils::CreateKey(HKEY_LOCAL_MACHINE, kStorageSenseKey);
+    ok &= registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kStorageSenseKey,
+                                      L"AllowStorageSenseGlobal", 0);
+    m_lastStatus = ok ? TweakStatus::Applied : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableStorageSenseTweak::Revert()
+{
+    bool ok = registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kStorageSenseKey,
+                                          L"AllowStorageSenseGlobal", 1);
+    m_lastStatus = ok ? TweakStatus::Reverted : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableStorageSenseTweak::IsApplied() const
+{
+    auto val = registry_utils::ReadDword(HKEY_LOCAL_MACHINE, kStorageSenseKey,
+                                          L"AllowStorageSenseGlobal");
+    return val.has_value() && *val == 0;
+}
+
+// ─── DisableErrorReportingTweak ──────────────────────────────────────────────
+static const wchar_t* kWERKey =
+    L"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Error Reporting";
+
+bool DisableErrorReportingTweak::Apply()
+{
+    bool ok = registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kWERKey,
+                                          L"Disabled", 1);
+    ok &= service_utils::StopService(L"WerSvc") || true;
+    ok &= service_utils::SetStartType(L"WerSvc", SERVICE_DISABLED);
+    m_lastStatus = ok ? TweakStatus::Applied : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableErrorReportingTweak::Revert()
+{
+    bool ok = registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kWERKey,
+                                          L"Disabled", 0);
+    ok &= service_utils::SetStartType(L"WerSvc", SERVICE_DEMAND_START);
+    m_lastStatus = ok ? TweakStatus::Reverted : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableErrorReportingTweak::IsApplied() const
+{
+    auto val = registry_utils::ReadDword(HKEY_LOCAL_MACHINE, kWERKey, L"Disabled");
+    return val.has_value() && *val == 1;
+}

@@ -102,3 +102,69 @@ bool DisablePointerPrecisionTweak::IsApplied() const
     auto v1 = registry_utils::ReadString(HKEY_CURRENT_USER, kMouseKey, L"MouseThreshold1");
     return v1.has_value() && *v1 == L"0";
 }
+
+// ─── DisableStickyFilterKeysTweak ────────────────────────────────────────────
+static const wchar_t* kStickyKeysKey = L"Control Panel\\Accessibility\\StickyKeys";
+static const wchar_t* kFilterKeysKey = L"Control Panel\\Accessibility\\Keyboard Response";
+static const wchar_t* kToggleKeysKey = L"Control Panel\\Accessibility\\ToggleKeys";
+
+bool DisableStickyFilterKeysTweak::Apply()
+{
+    bool ok = registry_utils::WriteString(HKEY_CURRENT_USER, kStickyKeysKey,
+                                           L"Flags", L"506");
+    ok &= registry_utils::WriteString(HKEY_CURRENT_USER, kFilterKeysKey,
+                                       L"Flags", L"122");
+    ok &= registry_utils::WriteString(HKEY_CURRENT_USER, kToggleKeysKey,
+                                       L"Flags", L"58");
+    m_lastStatus = ok ? TweakStatus::Applied : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableStickyFilterKeysTweak::Revert()
+{
+    bool ok = registry_utils::WriteString(HKEY_CURRENT_USER, kStickyKeysKey,
+                                           L"Flags", L"510");
+    ok &= registry_utils::WriteString(HKEY_CURRENT_USER, kFilterKeysKey,
+                                       L"Flags", L"126");
+    ok &= registry_utils::WriteString(HKEY_CURRENT_USER, kToggleKeysKey,
+                                       L"Flags", L"62");
+    m_lastStatus = ok ? TweakStatus::Reverted : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableStickyFilterKeysTweak::IsApplied() const
+{
+    auto val = registry_utils::ReadString(HKEY_CURRENT_USER, kStickyKeysKey, L"Flags");
+    return val.has_value() && *val == L"506";
+}
+
+// ─── EnableGameModeTweak ─────────────────────────────────────────────────────
+static const wchar_t* kGameModeKey =
+    L"SOFTWARE\\Microsoft\\GameBar";
+
+bool EnableGameModeTweak::Apply()
+{
+    bool ok = registry_utils::WriteDword(HKEY_CURRENT_USER, kGameModeKey,
+                                          L"AutoGameModeEnabled", 1);
+    ok &= registry_utils::WriteDword(HKEY_CURRENT_USER, kGameModeKey,
+                                      L"AllowAutoGameMode", 1);
+    m_lastStatus = ok ? TweakStatus::Applied : TweakStatus::Failed;
+    return ok;
+}
+
+bool EnableGameModeTweak::Revert()
+{
+    bool ok = registry_utils::WriteDword(HKEY_CURRENT_USER, kGameModeKey,
+                                          L"AutoGameModeEnabled", 0);
+    ok &= registry_utils::WriteDword(HKEY_CURRENT_USER, kGameModeKey,
+                                      L"AllowAutoGameMode", 0);
+    m_lastStatus = ok ? TweakStatus::Reverted : TweakStatus::Failed;
+    return ok;
+}
+
+bool EnableGameModeTweak::IsApplied() const
+{
+    auto val = registry_utils::ReadDword(HKEY_CURRENT_USER, kGameModeKey,
+                                          L"AutoGameModeEnabled");
+    return val.has_value() && *val == 1;
+}

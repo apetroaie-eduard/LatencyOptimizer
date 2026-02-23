@@ -110,3 +110,64 @@ bool DisableGameBarTweak::IsApplied() const
     auto val = registry_utils::ReadDword(HKEY_CURRENT_USER, kGameBarKey, L"AppCaptureEnabled");
     return val.has_value() && *val == 0;
 }
+
+// ─── DisableCortanaTweak ────────────────────────────────────────────────────
+static const wchar_t* kCortanaKey =
+    L"SOFTWARE\\Policies\\Microsoft\\Windows\\Windows Search";
+
+bool DisableCortanaTweak::Apply()
+{
+    bool ok = registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kCortanaKey,
+                                          L"AllowCortana", 0);
+    ok &= registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kCortanaKey,
+                                      L"AllowSearchToUseLocation", 0);
+    ok &= registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kCortanaKey,
+                                      L"AllowCloudSearch", 0);
+    m_lastStatus = ok ? TweakStatus::Applied : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableCortanaTweak::Revert()
+{
+    bool ok = registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kCortanaKey,
+                                          L"AllowCortana", 1);
+    ok &= registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kCortanaKey,
+                                      L"AllowSearchToUseLocation", 1);
+    ok &= registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kCortanaKey,
+                                      L"AllowCloudSearch", 1);
+    m_lastStatus = ok ? TweakStatus::Reverted : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableCortanaTweak::IsApplied() const
+{
+    auto val = registry_utils::ReadDword(HKEY_LOCAL_MACHINE, kCortanaKey, L"AllowCortana");
+    return val.has_value() && *val == 0;
+}
+
+// ─── DisableFastStartupTweak ────────────────────────────────────────────────
+static const wchar_t* kPowerSettingsKey =
+    L"SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Power";
+
+bool DisableFastStartupTweak::Apply()
+{
+    bool ok = registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kPowerSettingsKey,
+                                          L"HiberbootEnabled", 0);
+    m_lastStatus = ok ? TweakStatus::Applied : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableFastStartupTweak::Revert()
+{
+    bool ok = registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kPowerSettingsKey,
+                                          L"HiberbootEnabled", 1);
+    m_lastStatus = ok ? TweakStatus::Reverted : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableFastStartupTweak::IsApplied() const
+{
+    auto val = registry_utils::ReadDword(HKEY_LOCAL_MACHINE, kPowerSettingsKey,
+                                          L"HiberbootEnabled");
+    return val.has_value() && *val == 0;
+}

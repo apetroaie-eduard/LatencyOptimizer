@@ -63,3 +63,62 @@ bool DisableUSBSuspendTweak::IsApplied() const
                                           L"DisableSelectiveSuspend");
     return val.has_value() && *val == 1;
 }
+
+// ─── DisableCoreParkingTweak ─────────────────────────────────────────────────
+
+bool DisableCoreParkingTweak::Apply()
+{
+    int rc = cmd_utils::RunCommand(L"powercfg",
+        L"/setacvalueindex scheme_current sub_processor CPMINCORES 100", false, true);
+    cmd_utils::RunCommand(L"powercfg",
+        L"/setdcvalueindex scheme_current sub_processor CPMINCORES 100", false, true);
+    cmd_utils::RunCommand(L"powercfg", L"/setactive scheme_current", false, true);
+    m_lastStatus = (rc == 0) ? TweakStatus::Applied : TweakStatus::Failed;
+    return rc == 0;
+}
+
+bool DisableCoreParkingTweak::Revert()
+{
+    int rc = cmd_utils::RunCommand(L"powercfg",
+        L"/setacvalueindex scheme_current sub_processor CPMINCORES 10", false, true);
+    cmd_utils::RunCommand(L"powercfg",
+        L"/setdcvalueindex scheme_current sub_processor CPMINCORES 10", false, true);
+    cmd_utils::RunCommand(L"powercfg", L"/setactive scheme_current", false, true);
+    m_lastStatus = (rc == 0) ? TweakStatus::Reverted : TweakStatus::Failed;
+    return rc == 0;
+}
+
+bool DisableCoreParkingTweak::IsApplied() const
+{
+    std::string out = cmd_utils::CaptureOutput(
+        "powercfg /query scheme_current sub_processor CPMINCORES");
+    return out.find("0x00000064") != std::string::npos;
+}
+
+// ─── DisablePowerThrottlingTweak ─────────────────────────────────────────────
+static const wchar_t* kPowerThrottleKey =
+    L"SYSTEM\\CurrentControlSet\\Control\\Power\\PowerThrottling";
+
+bool DisablePowerThrottlingTweak::Apply()
+{
+    bool ok = registry_utils::CreateKey(HKEY_LOCAL_MACHINE, kPowerThrottleKey);
+    ok &= registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kPowerThrottleKey,
+                                      L"PowerThrottlingOff", 1);
+    m_lastStatus = ok ? TweakStatus::Applied : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisablePowerThrottlingTweak::Revert()
+{
+    bool ok = registry_utils::WriteDword(HKEY_LOCAL_MACHINE, kPowerThrottleKey,
+                                          L"PowerThrottlingOff", 0);
+    m_lastStatus = ok ? TweakStatus::Reverted : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisablePowerThrottlingTweak::IsApplied() const
+{
+    auto val = registry_utils::ReadDword(HKEY_LOCAL_MACHINE, kPowerThrottleKey,
+                                          L"PowerThrottlingOff");
+    return val.has_value() && *val == 1;
+}

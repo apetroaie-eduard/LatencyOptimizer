@@ -47,3 +47,44 @@ public:
     bool Revert()   override;
     bool IsApplied() const override;
 };
+
+// Tweak: Disable Core Parking
+class DisableCoreParkingTweak : public TweakBase {
+public:
+    const char* Name()        const override { return "Disable Core Parking"; }
+    const char* Description() const override { return "Prevents Windows from parking CPU cores, keeping all cores active."; }
+    const char* Detail()      const override {
+        return "Windows parks idle CPU cores to save power. Waking a parked core\n"
+               "adds microseconds of latency when a thread migrates to it.\n"
+               "Setting CoreParkingMinCores to 100% ensures all cores stay active\n"
+               "and ready for immediate use. Increases idle power consumption.";
+    }
+    const char* Category()    const override { return "Power"; }
+    TweakRisk   Risk()        const override { return TweakRisk::Safe; }
+    TweakCompat Compat()      const override { return TweakCompat::All; }
+
+    bool Apply()    override;
+    bool Revert()   override;
+    bool IsApplied() const override;
+};
+
+// Tweak: Disable Power Throttling
+class DisablePowerThrottlingTweak : public TweakBase {
+public:
+    const char* Name()        const override { return "Disable Power Throttling"; }
+    const char* Description() const override { return "Prevents Windows from throttling background app CPU performance."; }
+    const char* Detail()      const override {
+        return "Windows 10 1709+ can throttle CPU frequency for background apps\n"
+               "using Intel Speed Shift / AMD CPPC. Disabling this via the\n"
+               "PowerThrottling registry key ensures all processes receive full\n"
+               "CPU performance regardless of foreground/background state.";
+    }
+    const char* Category()    const override { return "Power"; }
+    TweakRisk   Risk()        const override { return TweakRisk::Safe; }
+    TweakCompat Compat()      const override { return TweakCompat::All; }
+    bool RequiresBackup()     const override { return true; }
+
+    bool Apply()    override;
+    bool Revert()   override;
+    bool IsApplied() const override;
+};

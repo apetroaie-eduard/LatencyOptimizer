@@ -100,3 +100,42 @@ bool EnableHAGSTweak::IsApplied() const
     auto val = registry_utils::ReadDword(HKEY_LOCAL_MACHINE, kGraphicsDriversKey, L"HwSchMode");
     return val.has_value() && *val == 2;
 }
+
+// ─── DisableFullscreenOptTweak ───────────────────────────────────────────────
+static const wchar_t* kGameConfigKey =
+    L"SYSTEM\\GameConfigStore";
+
+bool DisableFullscreenOptTweak::Apply()
+{
+    bool ok = registry_utils::WriteDword(HKEY_CURRENT_USER, kGameConfigKey,
+                                          L"GameDVR_FSEBehaviorMode", 2);
+    ok &= registry_utils::WriteDword(HKEY_CURRENT_USER, kGameConfigKey,
+                                      L"GameDVR_HonorUserFSEBehaviorMode", 1);
+    ok &= registry_utils::WriteDword(HKEY_CURRENT_USER, kGameConfigKey,
+                                      L"GameDVR_FSEBehavior", 2);
+    ok &= registry_utils::WriteDword(HKEY_CURRENT_USER, kGameConfigKey,
+                                      L"GameDVR_DXGIHonorFSEWindowsCompatible", 1);
+    m_lastStatus = ok ? TweakStatus::Applied : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableFullscreenOptTweak::Revert()
+{
+    bool ok = registry_utils::WriteDword(HKEY_CURRENT_USER, kGameConfigKey,
+                                          L"GameDVR_FSEBehaviorMode", 0);
+    ok &= registry_utils::WriteDword(HKEY_CURRENT_USER, kGameConfigKey,
+                                      L"GameDVR_HonorUserFSEBehaviorMode", 0);
+    ok &= registry_utils::WriteDword(HKEY_CURRENT_USER, kGameConfigKey,
+                                      L"GameDVR_FSEBehavior", 0);
+    ok &= registry_utils::WriteDword(HKEY_CURRENT_USER, kGameConfigKey,
+                                      L"GameDVR_DXGIHonorFSEWindowsCompatible", 0);
+    m_lastStatus = ok ? TweakStatus::Reverted : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableFullscreenOptTweak::IsApplied() const
+{
+    auto val = registry_utils::ReadDword(HKEY_CURRENT_USER, kGameConfigKey,
+                                          L"GameDVR_FSEBehaviorMode");
+    return val.has_value() && *val == 2;
+}

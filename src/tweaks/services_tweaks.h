@@ -61,3 +61,45 @@ public:
     bool Revert()   override;
     bool IsApplied() const override;
 };
+
+// Tweak: Disable Print Spooler
+class DisablePrintSpoolerTweak : public TweakBase {
+public:
+    const char* Name()        const override { return "Disable Print Spooler"; }
+    const char* Description() const override { return "Stops the Print Spooler service to reduce background overhead."; }
+    const char* Detail()      const override {
+        return "The Print Spooler service manages print jobs and loads printer\n"
+               "drivers. If you do not use a local printer, disabling it frees\n"
+               "memory and eliminates a historically common attack surface.\n"
+               "Re-enable if you need to print.";
+    }
+    const char* Category()    const override { return "Services"; }
+    TweakRisk   Risk()        const override { return TweakRisk::Safe; }
+    TweakCompat Compat()      const override { return TweakCompat::All; }
+    bool RequiresBackup()     const override { return true; }
+
+    bool Apply()    override;
+    bool Revert()   override;
+    bool IsApplied() const override;
+};
+
+// Tweak: Disable Diagnostic Services
+class DisableDiagServicesTweak : public TweakBase {
+public:
+    const char* Name()        const override { return "Disable Diagnostic Services"; }
+    const char* Description() const override { return "Disables DiagSvc and dmwappushservice to reduce background activity."; }
+    const char* Detail()      const override {
+        return "The Diagnostic Service (DiagSvc) and dmwappushservice handle\n"
+               "Connected User Experiences telemetry routing. They consume\n"
+               "CPU and network bandwidth in the background. Disabling them\n"
+               "reduces background data collection activity.";
+    }
+    const char* Category()    const override { return "Services"; }
+    TweakRisk   Risk()        const override { return TweakRisk::Safe; }
+    TweakCompat Compat()      const override { return TweakCompat::All; }
+    bool RequiresBackup()     const override { return true; }
+
+    bool Apply()    override;
+    bool Revert()   override;
+    bool IsApplied() const override;
+};

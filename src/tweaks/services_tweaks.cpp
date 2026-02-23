@@ -73,3 +73,51 @@ bool DisableWUDOTweak::IsApplied() const
     auto val = registry_utils::ReadDword(HKEY_LOCAL_MACHINE, kDOKey, L"DODownloadMode");
     return val.has_value() && *val == 0;
 }
+
+// ─── DisablePrintSpoolerTweak ───────────────────────────────────────────────
+
+bool DisablePrintSpoolerTweak::Apply()
+{
+    bool ok = service_utils::StopService(L"Spooler") || true;
+    ok &= service_utils::SetStartType(L"Spooler", SERVICE_DISABLED);
+    m_lastStatus = ok ? TweakStatus::Applied : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisablePrintSpoolerTweak::Revert()
+{
+    bool ok = service_utils::SetStartType(L"Spooler", SERVICE_AUTO_START);
+    if (ok) service_utils::StartService(L"Spooler");
+    m_lastStatus = ok ? TweakStatus::Reverted : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisablePrintSpoolerTweak::IsApplied() const
+{
+    return service_utils::GetStartType(L"Spooler") == SERVICE_DISABLED;
+}
+
+// ─── DisableDiagServicesTweak ───────────────────────────────────────────────
+
+bool DisableDiagServicesTweak::Apply()
+{
+    bool ok = service_utils::StopService(L"DiagSvc") || true;
+    ok &= service_utils::SetStartType(L"DiagSvc", SERVICE_DISABLED);
+    service_utils::StopService(L"dmwappushservice");
+    ok &= service_utils::SetStartType(L"dmwappushservice", SERVICE_DISABLED);
+    m_lastStatus = ok ? TweakStatus::Applied : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableDiagServicesTweak::Revert()
+{
+    bool ok = service_utils::SetStartType(L"DiagSvc", SERVICE_DEMAND_START);
+    ok &= service_utils::SetStartType(L"dmwappushservice", SERVICE_DEMAND_START);
+    m_lastStatus = ok ? TweakStatus::Reverted : TweakStatus::Failed;
+    return ok;
+}
+
+bool DisableDiagServicesTweak::IsApplied() const
+{
+    return service_utils::GetStartType(L"DiagSvc") == SERVICE_DISABLED;
+}
