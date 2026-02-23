@@ -54,6 +54,7 @@ set(APP_SOURCES
     src/tweaks/input_tweaks.cpp
     src/tweaks/scheduler_tweaks.cpp
     src/tweaks/misc_tweaks.cpp
+    src/tweaks/dpc_tweaks.cpp
 
     # Core
     src/backup_manager.cpp

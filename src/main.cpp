@@ -19,6 +19,7 @@
 #include "tweaks/input_tweaks.h"
 #include "tweaks/scheduler_tweaks.h"
 #include "tweaks/misc_tweaks.h"
+#include "tweaks/dpc_tweaks.h"
 
 // ─── D3D11 globals ────────────────────────────────────────────────────────────
 static ID3D11Device*           g_pd3dDevice    = nullptr;
@@ -159,6 +160,15 @@ static void RegisterTweaks(Gui& gui)
     gui.RegisterTweak(std::make_shared<Win32PrioritySeparationTweak>());
     gui.RegisterTweak(std::make_shared<GameCPUPriorityTweak>());
     gui.RegisterTweak(std::make_shared<SFIOPriorityTweak>());
+
+    // DPC Latency (7)
+    gui.RegisterTweak(std::make_shared<DisableNvidiaHDCPTweak>());
+    gui.RegisterTweak(std::make_shared<NvidiaPerCpuDpcTweak>());
+    gui.RegisterTweak(std::make_shared<DisableNvidiaASPMTweak>());
+    gui.RegisterTweak(std::make_shared<EnableGPUMSITweak>());
+    gui.RegisterTweak(std::make_shared<DisableNvTelemetryTweak>());
+    gui.RegisterTweak(std::make_shared<GPUInterruptAffinityTweak>());
+    gui.RegisterTweak(std::make_shared<DisableNvidiaEnergyDriverTweak>());
 
     // Misc (7)
     gui.RegisterTweak(std::make_shared<DisableDeliveryOptimizationTweak>());
