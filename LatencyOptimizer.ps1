@@ -1105,7 +1105,7 @@ function Start-Gui {
         $category = $categoryList.SelectedItem
         $tweakList.BeginUpdate()
         $tweakList.Items.Clear()
-        foreach ($tw in Get-TweakCatalog() | Where-Object { $_.Category -eq $category }) {
+        foreach ($tw in (Get-TweakCatalog | Where-Object { $_.Category -eq $category })) {
             $item = New-Object System.Windows.Forms.ListViewItem($tw.Name)
             [void]$item.SubItems.Add($tw.Risk)
             $item.Tag = $tw
